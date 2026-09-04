@@ -1,4 +1,9 @@
+#include <WiFi.h>
 #include <Arduino.h>
+#include <ArduinoOTA.h>
+unsigned long lastCheckTime = 0;
+const char* ssid = "speedforce_IoT"; // replace with your WiFi SSID
+const char* password = "Lalaland2024"; // replace with your WiFi password
 
 // put function declarations here:
 const int SENSOR1_PWR_PIN = 26;
@@ -27,44 +32,67 @@ void setup() {
 
   
   Serial.println("Powering up...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+  ArduinoOTA.begin();// Start OTA (ON THE AIR) service, WIFI based firmware update feature.
 }
 
+
+
 void loop() {
-  // ================= PLANT 1 =================
-  digitalWrite(SENSOR1_PWR_PIN, HIGH); // Power sensor 1
-  delay(50);
-  int sensor1Val = analogRead(SENSOR1_AIN_PIN);
-  digitalWrite(SENSOR1_PWR_PIN, LOW);  // Power off sensor 1
 
-  Serial.print("Plant 1 Moisture: ");
-  Serial.println(sensor1Val);
+  ArduinoOTA.handle();// chekk for OTA updates on wifi network
+  if (millis() - lastCheckTime >= 60000){// check if 60 seconds have passed since last check while looping
+    lastCheckTime = millis();
+    
+    // ================= PLANT 1 =================
+    digitalWrite(SENSOR1_PWR_PIN, HIGH); // Power sensor 1
+    delay(50);
+    int sensor1Val = analogRead(SENSOR1_AIN_PIN);
+    digitalWrite(SENSOR1_PWR_PIN, LOW);  // Power off sensor 1
 
-  if (sensor1Val > DRY_THRESHOLD) {
-    Serial.println("Watering Plant 1...");
-    digitalWrite(PUMP1_RELAY_PIN, LOW);  // Turn pump 1 ON
-    delay(PUMP_TIME_MS);
-    digitalWrite(PUMP1_RELAY_PIN, HIGH); // Turn pump 1 OFF
-  }
+    Serial.print("Plant 1 Moisture: ");
+    Serial.println(sensor1Val);
+    if (sensor1Val > DRY_THRESHOLD) {
+      Serial.println("Watering Plant 1...");
+      digitalWrite(PUMP1_RELAY_PIN, LOW);  // Turn pump 1 ON
+      delay(PUMP_TIME_MS);
+      digitalWrite(PUMP1_RELAY_PIN, HIGH); // Turn pump 1 OFF
+    
+    }
+       // ================= PLANT 2 =================
+    digitalWrite(SENSOR2_PWR_PIN, HIGH); // Power sensor 2
+    delay(50);
+    int sensor2Val = analogRead(SENSOR2_AIN_PIN);
+    digitalWrite(SENSOR2_PWR_PIN, LOW);  // Power off sensor 2
 
-  // ================= PLANT 2 =================
-  digitalWrite(SENSOR2_PWR_PIN, HIGH); // Power sensor 2
-  delay(50);
-  int sensor2Val = analogRead(SENSOR2_AIN_PIN);
-  digitalWrite(SENSOR2_PWR_PIN, LOW);  // Power off sensor 2
-
-  Serial.print("Plant 2 Moisture: ");
-  Serial.println(sensor2Val);
-
-  if (sensor2Val > DRY_THRESHOLD) {
-    Serial.println("Watering Plant 2...");
-    digitalWrite(PUMP2_RELAY_PIN, LOW);  // Turn pump 2 ON
-    delay(PUMP_TIME_MS);
-    digitalWrite(PUMP2_RELAY_PIN, HIGH); // Turn pump 2 OFF
-  }
+    Serial.print("Plant 2 Moisture: ");
+    Serial.println(sensor2Val);
+    if (sensor2Val > DRY_THRESHOLD) {
+      Serial.println("Watering Plant 2...");
+      digitalWrite(PUMP2_RELAY_PIN, LOW);  // Turn pump 2 ON
+      delay(PUMP_TIME_MS);
+      digitalWrite(PUMP2_RELAY_PIN, HIGH); // Turn pump 2 OFF
+    }
+  
   Serial.println("Cycle complete. Waiting for next check...");
   Serial.println("--------------------------------------------------");
   Serial.println();
-  delay(60000); // Wait 60 seconds
   Serial.println("Starting next cycle...");
+
+  }
+
+
+ 
+
+ 
+
+
 
 }
