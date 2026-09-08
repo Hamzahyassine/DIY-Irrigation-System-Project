@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <ESPAsyncWebServer.h>
+#include <HTTPClient.h>
 #include "secrets.h" 
 #include "html.h" // Include the HTML content for the web page
 
@@ -30,9 +31,27 @@ void sendStatus(int plantNum, int moisture, int threshold, bool pumpOn) {
                 ",\"pumpOn\":" + String(pumpOn ? "true" : "false") + "}";
   ws.textAll(json);
 }
+// Sends one reading to Firebase, storing it under a timestamped path
+// so each entry is kept, not overwritten.
+void sendToFirebase(int plant, int moisture, bool pumpOn) {
+  if (WiFi.status() != WL_CONNECTED) return; // safety check, don't attempt if offline
+
+  HTTPClient http;
+  // Path: /readings/plant1/<current millis>.json  -- creates a new entry each time
+  String path = "/readings/plant" + String(plant) + "/" + String(millis()) + ".json?auth=" + FIREBASE_AUTH;
+  String url = "https://" + String(FIREBASE_HOST) + path;
+
+  String payload = "{\"moisture\":" + String(moisture) + ",\"pumpOn\":" + String(pumpOn ? "true" : "false") + "}";
+
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+  int responseCode = http.PUT(payload); // PUT creates/overwrites data at this exact path
+
+  logMessage("Firebase response: " + String(responseCode));
+  http.end();
+}
+
 #include "OTA_setup.h" // Include the OTA setup header
-
-
 void setup() {
   Serial.begin(9600);// baud rate, bits/seconds. Tells the computer how fast to talk to the ESP32. The ESP32 can talk faster than 9600, but this is a safe value that works with most computers.
   // 1. Tell the hardware which direction electricity moves
@@ -96,13 +115,18 @@ void loop() {
     if (sensor1Val > DRY_THRESHOLD) {
       logMessage("Watering Plant 1...");
       digitalWrite(PUMP1_RELAY_PIN, LOW);
+      sendToFirebase(1, sensor1Val, true);
       sendStatus(1, sensor1Val, DRY_THRESHOLD, true);  // send "watering" state
       delay(PUMP_TIME_MS);
       digitalWrite(PUMP1_RELAY_PIN, HIGH); // Turn pump 1 OFF
       
     }
     sendStatus(1, sensor1Val, DRY_THRESHOLD, false); // send "not watering" state
+    sendToFirebase(1, sensor1Val, false);
+
+
        // ================= PLANT 2 =================
+
     digitalWrite(SENSOR2_PWR_PIN, HIGH); // Power sensor 2
     delay(50);
     int sensor2Val = analogRead(SENSOR2_AIN_PIN);
@@ -113,10 +137,12 @@ void loop() {
     if (sensor2Val > DRY_THRESHOLD) {
       logMessage("Watering Plant 2...");
       digitalWrite(PUMP2_RELAY_PIN, LOW); 
+      sendToFirebase(2, sensor2Val, true);
       sendStatus(2, sensor2Val, DRY_THRESHOLD, true);  // send "watering" state
       delay(PUMP_TIME_MS);
       digitalWrite(PUMP2_RELAY_PIN, HIGH); // Turn pump 2 OFF
     }
+    sendToFirebase(2, sensor2Val, false);
     sendStatus(2, sensor2Val, DRY_THRESHOLD, false); // send "not watering" state
   
   logMessage("Cycle complete. Waiting for next check...");
