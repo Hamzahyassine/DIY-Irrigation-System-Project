@@ -21,6 +21,15 @@ void logMessage(const String& message) {//helper function to log messages to bot
   Serial.println(message);
   ws.textAll(message); // Send the message to all connected WebSocket clients
 }
+// Sends structured plant status as JSON, so the dashboard can update
+// bars/indicators — separate from logMessage(), which just sends plain text.
+void sendStatus(int plantNum, int moisture, int threshold, bool pumpOn) {
+  String json = "{\"type\":\"status\",\"plant\":" + String(plantNum) +
+                ",\"moisture\":" + String(moisture) +
+                ",\"dryThreshold\":" + String(threshold) +
+                ",\"pumpOn\":" + String(pumpOn ? "true" : "false") + "}";
+  ws.textAll(json);
+}
 #include "OTA_setup.h" // Include the OTA setup header
 
 
@@ -86,11 +95,13 @@ void loop() {
     logMessage("Plant 1 Moisture: " + String(sensor1Val));
     if (sensor1Val > DRY_THRESHOLD) {
       logMessage("Watering Plant 1...");
-      digitalWrite(PUMP1_RELAY_PIN, LOW);  // Turn pump 1 ON
+      digitalWrite(PUMP1_RELAY_PIN, LOW);
+      sendStatus(1, sensor1Val, DRY_THRESHOLD, true);  // send "watering" state
       delay(PUMP_TIME_MS);
       digitalWrite(PUMP1_RELAY_PIN, HIGH); // Turn pump 1 OFF
-    
+      
     }
+    sendStatus(1, sensor1Val, DRY_THRESHOLD, false); // send "not watering" state
        // ================= PLANT 2 =================
     digitalWrite(SENSOR2_PWR_PIN, HIGH); // Power sensor 2
     delay(50);
@@ -101,10 +112,12 @@ void loop() {
     logMessage("Plant 2 Moisture: " + String(sensor2Val));
     if (sensor2Val > DRY_THRESHOLD) {
       logMessage("Watering Plant 2...");
-      digitalWrite(PUMP2_RELAY_PIN, LOW);  // Turn pump 2 ON
+      digitalWrite(PUMP2_RELAY_PIN, LOW); 
+      sendStatus(2, sensor2Val, DRY_THRESHOLD, true);  // send "watering" state
       delay(PUMP_TIME_MS);
       digitalWrite(PUMP2_RELAY_PIN, HIGH); // Turn pump 2 OFF
     }
+    sendStatus(2, sensor2Val, DRY_THRESHOLD, false); // send "not watering" state
   
   logMessage("Cycle complete. Waiting for next check...");
   logMessage("--------------------------------------------------");
