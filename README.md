@@ -15,6 +15,13 @@ The ESP32 now sends soil sensor data to Firebase, and I'm using Github pages to 
 The project is currently a work in progress. I am using the build to learn by testing, documenting mistakes, and improving the design over time.
 
 
+## Public Dashboard
+
+A public, read-only version of the dashboard is hosted on GitHub Pages and reads live data from Firebase: **[View the live dashboard](https://hamzahyassine.github.io/DIY-Irrigation-System-Project/)**
+
+Unlike the local WebSocket dashboard (which only works on the same Wi-Fi network as the ESP32), this page is viewable from anywhere and shows historical sensor data logged to Firebase.
+
+
 ## Current Build
 
 - ESP32 DevKit v1
