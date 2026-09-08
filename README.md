@@ -10,6 +10,8 @@ The system monitors two plants independently. Every 60 seconds, the ESP32 reads 
 
 The ESP32 also hosts a small live dashboard, accessible by visiting its IP address from any browser on the same network. Sensor readings and pump activity are pushed to the page instantly using a WebSocket connection, so the console updates in real time without needing to refresh.
 
+The ESP32 now sends soil sensor data to Firebase, and I'm using Github pages to host a static website that gets sensor data from Firebase.
+
 The project is currently a work in progress. I am using the build to learn by testing, documenting mistakes, and improving the design over time.
 
 
@@ -56,11 +58,17 @@ The project uses PlatformIO with the `esp32dev` environment. The first firmware 
 
 Do not commit real Wi-Fi credentials to GitHub. Pumps should have an appropriate external power supply and must not be powered directly from an ESP32 GPIO pin.
 
+## Issues
+
+The code tracks time using `millis()`, which counts time since the ESP32 was last turned on. This is fine for now, but the issue is that Firebase uses `millis()` as the identifier for each sensor reading — if the ESP32 restarts, `millis()` resets back to a low number, which could overwrite existing data in Firebase that happens to share the same timestamp value.
+
 ## Future Ideas
 
 - Calibrate each sensor separately instead of using one fixed threshold.
 - Add a water-level sensor to the reservoir.
 - Add a real-time clock (RTC) for scheduled watering.
 - Explore ESP32 deep sleep for lower power use, and exploring battery and solar powered system.
-- Add maximum daily watering limits and manual pump control.
-- Create a web interface which will include soil moisture level, tank level, and include history of data readings.
+
+## GOAL 
+
+The goal is to completely learn how to create an embedded system from scratch, combining code and hardware to create an efficient, autonomous system. At the end of this, I want to have the ESP32 completely run by a battery and a small solar panel. Finally, I want to design a PCB that will eliminate most wires and make the system fit in a small 3D-printed enclosure.

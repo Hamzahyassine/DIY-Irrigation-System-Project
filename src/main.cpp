@@ -101,8 +101,9 @@ server.begin();
 void loop() {
 
   ArduinoOTA.handle();// chekk for OTA updates on wifi network
-  if (millis() - lastCheckTime >= 60000){// check if 60 seconds have passed since last check while looping
+  if (millis() - lastCheckTime >= 43200000){// check if 12 hours have passed since last check while looping
     lastCheckTime = millis();
+    logMessage("Starting next cycle...");
     
     // ================= PLANT 1 =================
     digitalWrite(SENSOR1_PWR_PIN, HIGH); // Power sensor 1
@@ -147,8 +148,8 @@ void loop() {
   
   logMessage("Cycle complete. Waiting for next check...");
   logMessage("--------------------------------------------------");
-  logMessage("Next check in 60 seconds...");
-  logMessage("Starting next cycle...");
+  logMessage("Next check in 12 hours...");
+  
 
   }
 

@@ -65,9 +65,23 @@ I learned the difference between HTML (structure) and JavaScript (behavior) — 
 
 I refactored my scattered `Serial.println()` calls into a single `logMessage()` function that sends text to both the Serial Monitor and any connected browser at once, using `ws.textAll()`.
 
+## September 4, 2026: Public Dashboard on GitHub Pages, 12-Hour Interval
+
+### Public dashboard on GitHub Pages
+
+I created a `docs/` folder with an `index.html` that reads directly from Firebase using its JS SDK (loaded via CDN script tags, no build step needed), and enabled GitHub Pages to serve it from that folder. The page has a Home tab (current moisture, water-level bars, placeholders for battery and tank level) and a History tab (full log per plant). This makes the project's status viewable from anywhere, not just my home network — separate from the live WebSocket dashboard, which only works locally.
+
+I learned that readings keyed by `millis()` only represent time since the ESP32's last boot, not real calendar time, so the dashboard currently can't show an accurate "watered X hours ago" — that needs NTP-based real timestamps, which I'm leaving as a next step. It also creates future dublication issues of my data if the ESP32 reboots, it might replce some data.
+
+### Interval change
+
+Increased the sensor check interval from every 60 seconds to every 12 hours, now that the core logic is proven and I don't need constant testing output.
+
+
+
 ## Current Implementation
 
-The current code reads both sensors every 60 seconds. It treats readings above `2500` as dry soil and runs the matching pump for one second, it outputs dat to Serial.print and to the webserver. The ESP32 connects to Wi-Fi and supports OTA updates.
+The current code reads both sensors every 60 seconds. It treats readings above `2500` as dry soil and runs the matching pump for one second, it outputs data to Serial.print, local webserver, and to firebase. The ESP32 connects to Wi-Fi and supports OTA updates.
 
 ## Next Experiments
 
