@@ -1,58 +1,215 @@
-//test file for irrigation history page
-
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Irrigation History</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: -apple-system, sans-serif;
-      background: #f4f6f5;
-      color: #1a1a1a;
-      padding: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    h1 { font-weight: 600; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    th, td {
-      text-align: left;
-      padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      font-size: 14px;
-    }
-    th { background: #f0f0f0; font-weight: 600; }
-    .plant-section { margin-bottom: 30px; }
-  </style>
+<title>🌱 Irrigation Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #eafbf0 0%, #f4f9f5 100%);
+    color: #1f2d24;
+    margin: 0;
+    padding: 20px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 10px 0 20px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    color: #6b8f7a;
+  }
+  .tab.active {
+    background: #4caf82;
+    color: #fff;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .plant-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .plant-emoji {
+    font-size: 42px;
+    background: #eafbf0;
+    border-radius: 14px;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .plant-info { flex: 1; }
+  .plant-name-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .plant-name { font-weight: 700; font-size: 16px; }
+  .last-watered { font-size: 12px; color: #7c8f82; margin-bottom: 8px; }
+
+  .bar-track {
+    background: #eef3ef;
+    border-radius: 8px;
+    height: 12px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #4caf82, #7bd99e);
+    transition: width 0.4s ease;
+  }
+  .bar-fill.dry { background: linear-gradient(90deg, #e0954a, #f2b877); }
+
+  .moisture-label {
+    font-size: 12px;
+    color: #7c8f82;
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .coming-soon-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    opacity: 0.6;
+  }
+  .coming-soon-emoji { font-size: 32px; }
+  .coming-soon-text { flex: 1; }
+  .coming-soon-title { font-weight: 700; font-size: 14px; }
+  .coming-soon-badge {
+    font-size: 11px;
+    color: #b08a4e;
+    background: #fdf1de;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+  }
+  th { background: #eafbf0; font-weight: 700; color: #2d5c40; }
+  .plant-history-title { font-weight: 700; margin: 20px 0 10px; font-size: 16px; }
+</style>
 </head>
 <body>
-  <h1>🌿 Plant Watering History</h1>
 
-  <div class="plant-section">
-    <h2>Plant 1</h2>
-    <table>
-      <thead><tr><th>Time (device uptime, ms)</th><th>Moisture</th><th>Pump</th></tr></thead>
-      <tbody id="plant1-table"><tr><td colspan="3">Loading...</td></tr></tbody>
-    </table>
+  <h1>🌿 Irrigation Dashboard</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showPage('home')">Home</div>
+    <div class="tab" onclick="showPage('history')">History</div>
   </div>
 
-  <div class="plant-section">
-    <h2>Plant 2</h2>
+  <!-- ===================== HOME PAGE ===================== -->
+  <div id="home" class="page active">
+
+    <div class="plant-card">
+      <div class="plant-emoji">🌱</div>
+      <div class="plant-info">
+        <div class="plant-name-row">
+          <span class="plant-name">Plant 1</span>
+        </div>
+        <div class="last-watered" id="last-watered-1">Loading...</div>
+        <div class="bar-track"><div class="bar-fill" id="bar1" style="width:0%"></div></div>
+        <div class="moisture-label"><span id="value1">-- reading</span><span>Threshold: 3100</span></div>
+      </div>
+    </div>
+
+    <div class="plant-card">
+      <div class="plant-emoji">🌿</div>
+      <div class="plant-info">
+        <div class="plant-name-row">
+          <span class="plant-name">Plant 2</span>
+        </div>
+        <div class="last-watered" id="last-watered-2">Loading...</div>
+        <div class="bar-track"><div class="bar-fill" id="bar2" style="width:0%"></div></div>
+        <div class="moisture-label"><span id="value2">-- reading</span><span>Threshold: 3100</span></div>
+      </div>
+    </div>
+
+    <div class="coming-soon-card">
+      <div class="coming-soon-emoji">🔋</div>
+      <div class="coming-soon-text">
+        <div class="coming-soon-title">Battery Level</div>
+      </div>
+      <span class="coming-soon-badge">Coming soon</span>
+    </div>
+
+    <div class="coming-soon-card">
+      <div class="coming-soon-emoji">💧</div>
+      <div class="coming-soon-text">
+        <div class="coming-soon-title">Tank Level</div>
+      </div>
+      <span class="coming-soon-badge">Coming soon</span>
+    </div>
+
+  </div>
+
+  <!-- ===================== HISTORY PAGE ===================== -->
+  <div id="history" class="page">
+    <div class="plant-history-title">🌱 Plant 1 History</div>
     <table>
-      <thead><tr><th>Time (device uptime, ms)</th><th>Moisture</th><th>Pump</th></tr></thead>
+      <thead><tr><th>When</th><th>Moisture</th><th>Pump</th></tr></thead>
+      <tbody id="plant1-table"><tr><td colspan="3">Loading...</td></tr></tbody>
+    </table>
+
+    <div class="plant-history-title">🌿 Plant 2 History</div>
+    <table>
+      <thead><tr><th>When</th><th>Moisture</th><th>Pump</th></tr></thead>
       <tbody id="plant2-table"><tr><td colspan="3">Loading...</td></tr></tbody>
     </table>
   </div>
 
-  <!-- Firebase's CDN scripts -- no build tool needed, just plain script tags -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 
@@ -70,28 +227,76 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function loadPlantData(plantNum) {
-      const tableBody = document.getElementById('plant' + plantNum + '-table');
-      db.ref('readings/plant' + plantNum).once('value').then((snapshot) => {
+    const DRY_THRESHOLD = 3100;
+
+    // --- Tab switching ---
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // --- Turn "device uptime in ms" + "page load time" into a rough "X hours ago" ---
+    // Note: since readings are keyed by millis() (time since ESP32 boot, not real
+    // calendar time), this is an approximation based on how long ago the page
+    // saw this as the *latest* entry, not a precise real-world timestamp.
+    function formatRelativeTime(msAgo) {
+      const seconds = Math.floor(msAgo / 1000);
+      if (seconds < 60) return "just now";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return minutes + " min ago";
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return hours + " hr ago";
+      const days = Math.floor(hours / 24);
+      return days + " day" + (days > 1 ? "s" : "") + " ago";
+    }
+
+    function loadPlant(plantNum) {
+      const ref = db.ref('readings/plant' + plantNum);
+      ref.once('value').then((snapshot) => {
         const data = snapshot.val();
+        const tableBody = document.getElementById('plant' + plantNum + '-table');
+
         if (!data) {
           tableBody.innerHTML = '<tr><td colspan="3">No data yet</td></tr>';
+          document.getElementById('last-watered-' + plantNum).textContent = 'No data yet';
           return;
         }
-        // Data comes back as an object keyed by millis() timestamp -- convert to array, sort newest first
+
         const entries = Object.entries(data).sort((a, b) => b[0] - a[0]);
+        const [latestTimestamp, latestReading] = entries[0];
+
+        // --- Update Home page card ---
+        const moisture = latestReading.moisture;
+        const percentWet = Math.max(0, Math.min(100, 100 - (moisture / 4095 * 100)));
+        const bar = document.getElementById('bar' + plantNum);
+        bar.style.width = percentWet + '%';
+        bar.classList.toggle('dry', moisture > DRY_THRESHOLD);
+        document.getElementById('value' + plantNum).textContent = moisture + ' / 4095';
+
+        const msSincePageLoad = Date.now() - pageLoadTime;
+        // approximate "how long ago" using device-relative time deltas
+        const mostRecentPumpEntry = entries.find(([t, r]) => r.pumpOn);
+        const wateredText = mostRecentPumpEntry
+          ? 'Last watered — check history tab for details'
+          : 'No recent watering recorded';
+        document.getElementById('last-watered-' + plantNum).textContent = wateredText;
+
+        // --- Fill History table ---
         tableBody.innerHTML = entries.map(([timestamp, reading]) => `
           <tr>
-            <td>${timestamp}</td>
+            <td>${(timestamp / 1000 / 60).toFixed(1)} min after boot</td>
             <td>${reading.moisture}</td>
-            <td>${reading.pumpOn ? 'ON' : 'off'}</td>
+            <td>${reading.pumpOn ? '💧 ON' : 'off'}</td>
           </tr>
         `).join('');
       });
     }
 
-    loadPlantData(1);
-    loadPlantData(2);
+    const pageLoadTime = Date.now();
+    loadPlant(1);
+    loadPlant(2);
   </script>
 </body>
 </html>
