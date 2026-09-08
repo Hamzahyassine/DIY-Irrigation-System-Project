@@ -8,7 +8,10 @@ I built this project as a hands-on way to learn embedded systems, sensors, relay
 
 The system monitors two plants independently. Every 60 seconds, the ESP32 reads both capacitive soil-moisture sensors. When a plant is dry, its relay activates a 5 V pump for one second.
 
+The ESP32 also hosts a small live dashboard, accessible by visiting its IP address from any browser on the same network. Sensor readings and pump activity are pushed to the page instantly using a WebSocket connection, so the console updates in real time without needing to refresh.
+
 The project is currently a work in progress. I am using the build to learn by testing, documenting mistakes, and improving the design over time.
+
 
 ## Current Build
 
@@ -57,8 +60,7 @@ Do not commit real Wi-Fi credentials to GitHub. Pumps should have an appropriate
 
 - Calibrate each sensor separately instead of using one fixed threshold.
 - Add a water-level sensor to the reservoir.
-- Add a real-time clock for scheduled watering.
+- Add a real-time clock (RTC) for scheduled watering.
 - Explore ESP32 deep sleep for lower power use, and exploring battery and solar powered system.
 - Add maximum daily watering limits and manual pump control.
-- Improve Wi-Fi credential storage.
-- Create a web interface which will include soil moisture level, tank level, and manual watering.
+- Create a web interface which will include soil moisture level, tank level, and include history of data readings.

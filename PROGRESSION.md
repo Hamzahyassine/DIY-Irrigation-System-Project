@@ -57,10 +57,17 @@ The commit stays local until it is pushed to GitHub. Clear commit messages help 
 Migrate sensor readings from Uno pins to ESP32 ADC1 pins
 Document relay power and trigger wiring
 ```
+## September 6, 2026: Live Web Dashboard
+
+I added a WebSocket-based dashboard so I can view live sensor readings and logs from my phone's browser, without needing the Serial Monitor or a USB connection.
+
+I learned the difference between HTML (structure) and JavaScript (behavior) — the HTML page is static once loaded, but the JavaScript inside it opens a WebSocket connection that stays open, letting the ESP32 push new messages instantly instead of the browser having to repeatedly ask for updates.
+
+I refactored my scattered `Serial.println()` calls into a single `logMessage()` function that sends text to both the Serial Monitor and any connected browser at once, using `ws.textAll()`.
 
 ## Current Implementation
 
-The current code reads both sensors every 60 seconds. It treats readings above `2500` as dry soil and runs the matching pump for one second. The ESP32 connects to Wi-Fi and supports OTA updates.
+The current code reads both sensors every 60 seconds. It treats readings above `2500` as dry soil and runs the matching pump for one second, it outputs dat to Serial.print and to the webserver. The ESP32 connects to Wi-Fi and supports OTA updates.
 
 ## Next Experiments
 
