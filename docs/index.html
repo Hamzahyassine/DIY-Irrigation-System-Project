@@ -4,9 +4,94 @@
 <html>
 <head>
   <title>Irrigation History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #f4f6f5;
+      color: #1a1a1a;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 { font-weight: 600; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    th { background: #f0f0f0; font-weight: 600; }
+    .plant-section { margin-bottom: 30px; }
+  </style>
 </head>
 <body>
-  <h1>Plant Watering History</h1>
-  <p>Page is live. Firebase data coming soon.</p>
+  <h1>🌿 Plant Watering History</h1>
+
+  <div class="plant-section">
+    <h2>Plant 1</h2>
+    <table>
+      <thead><tr><th>Time (device uptime, ms)</th><th>Moisture</th><th>Pump</th></tr></thead>
+      <tbody id="plant1-table"><tr><td colspan="3">Loading...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="plant-section">
+    <h2>Plant 2</h2>
+    <table>
+      <thead><tr><th>Time (device uptime, ms)</th><th>Moisture</th><th>Pump</th></tr></thead>
+      <tbody id="plant2-table"><tr><td colspan="3">Loading...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Firebase's CDN scripts -- no build tool needed, just plain script tags -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhZOkwIti5OI33I9UTuubcznDydo1zgoE",
+      authDomain: "irrigation-system-63de0.firebaseapp.com",
+      databaseURL: "https://irrigation-system-63de0-default-rtdb.firebaseio.com",
+      projectId: "irrigation-system-63de0",
+      storageBucket: "irrigation-system-63de0.firebasestorage.app",
+      messagingSenderId: "546047253060",
+      appId: "1:546047253060:web:7146502e85dc36bcadba11"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadPlantData(plantNum) {
+      const tableBody = document.getElementById('plant' + plantNum + '-table');
+      db.ref('readings/plant' + plantNum).once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          tableBody.innerHTML = '<tr><td colspan="3">No data yet</td></tr>';
+          return;
+        }
+        // Data comes back as an object keyed by millis() timestamp -- convert to array, sort newest first
+        const entries = Object.entries(data).sort((a, b) => b[0] - a[0]);
+        tableBody.innerHTML = entries.map(([timestamp, reading]) => `
+          <tr>
+            <td>${timestamp}</td>
+            <td>${reading.moisture}</td>
+            <td>${reading.pumpOn ? 'ON' : 'off'}</td>
+          </tr>
+        `).join('');
+      });
+    }
+
+    loadPlantData(1);
+    loadPlantData(2);
+  </script>
 </body>
 </html>
